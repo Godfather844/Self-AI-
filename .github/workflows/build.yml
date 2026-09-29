@@ -13,6 +13,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Virtual Framebuffer (Xvfb) install karo taaki AWT / IntelliJ ko real GUI display mile
+      - name: Install Xvfb (Virtual Display for KSP/AWT)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -56,24 +62,7 @@ jobs:
           find . -type d -name "app" -exec cp google-services.json {}/ \;
           cp google-services.json ./ || true
 
-      # Step 2: Fix KSP Headless Crash via gradle.properties
-      - name: Configure Gradle & KSP flags
-        run: |
-          # gradle.properties me KSP aur JVM headless flags inject karo
-          mkdir -p ~/.gradle
-          echo "org.gradle.jvmargs=-Xmx2560m -Djava.awt.headless=true -Dawt.toolkit=sun.awt.HeadlessToolkit" >> ~/.gradle/gradle.properties
-          echo "ksp.incremental=false" >> ~/.gradle/gradle.properties
-          echo "ksp.run.in.process=true" >> ~/.gradle/gradle.properties
-          echo "kotlin.compiler.execution.strategy=in-process" >> ~/.gradle/gradle.properties
-          
-          # Root aur submodules ke gradle.properties me bhi append karo
-          touch gradle.properties
-          echo "org.gradle.jvmargs=-Xmx2560m -Djava.awt.headless=true -Dawt.toolkit=sun.awt.HeadlessToolkit" >> gradle.properties
-          echo "ksp.incremental=false" >> gradle.properties
-          echo "ksp.run.in.process=true" >> gradle.properties
-          echo "kotlin.compiler.execution.strategy=in-process" >> gradle.properties
-
-      # Step 3: Ensure Gradle Wrapper
+      # Step 2: Ensure Gradle Wrapper
       - name: Ensure Gradle Wrapper
         run: |
           if [ ! -f "./gradlew" ]; then
@@ -81,18 +70,17 @@ jobs:
           fi
           chmod +x ./gradlew
 
-      # Step 4: Build Debug APK with headless JVM options
-      - name: Build Debug APK
+      # Step 3: Run Build inside xvfb-run (Virtual Screen)
+      - name: Build Debug APK with Virtual Display
         run: |
-          export JAVA_TOOL_OPTIONS="-Djava.awt.headless=true"
-          ./gradlew assembleDebug \
+          xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" ./gradlew assembleDebug \
             --no-daemon \
-            --no-parallel \
-            -Djava.awt.headless=true \
-            -Dawt.toolkit=sun.awt.HeadlessToolkit \
-            --stacktrace
+            --stacktrace \
+            -Dksp.incremental=false \
+            -Dksp.run.in.process=true \
+            -Dorg.gradle.jvmargs="-Xmx2560m"
 
-      # Step 5: Upload APK
+      # Step 4: Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         if: success()
