@@ -19,33 +19,41 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Fix 1: Dummy google-services.json generate karna taaki Google plugin pass ho sake
-      - name: Create Dummy google-services.json
+      # एग्जैक्ट पैकेज नेम के साथ google-services.json बनाना
+      - name: Create Exact Matching google-services.json
         run: |
           cat << 'EOF' > google-services.json
           {
             "project_info": {
-              "project_number": "1234567890",
+              "project_number": "123456789012",
               "project_id": "self-ai-app",
               "storage_bucket": "self-ai-app.appspot.com"
             },
             "client": [
               {
                 "client_info": {
-                  "mobilesdk_app_id": "1:1234567890:android:abcdef123456",
+                  "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890",
                   "android_client_info": {
-                    "package_name": "com.example.selfai"
+                    "package_name": "com.aistudio.selfai.qzvxmk"
                   }
                 },
                 "oauth_client": [],
-                "api_key": [{ "current_key": "dummy_api_key_for_build" }],
-                "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyDummyKeyForSuccessfulBuild12345"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
               }
             ],
             "configuration_version": "1"
           }
           EOF
-          # Jahan jahan google-services.json khoja ja raha hai wahan copy kar do
+          # app फोल्डर और रूट दोनों जगह कॉपी करें
           find . -type d -name "app" -exec cp google-services.json {}/ \;
           cp google-services.json ./ || true
 
@@ -56,7 +64,6 @@ jobs:
           fi
           chmod +x ./gradlew
 
-      # Fix 2: KSP/IntelliJ headless crash fix (-Djava.awt.headless=true) + Gradle flag
       - name: Build Debug APK
         run: |
           ./gradlew assembleDebug \
