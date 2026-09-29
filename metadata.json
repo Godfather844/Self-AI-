@@ -1,0 +1,6 @@
+{
+  "name": "Self AI",
+  "description": "Gamified learning app that turns lecture notes into interactive daily quests and quizzes with streaks, XP, and leaderboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

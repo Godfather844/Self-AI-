@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Graduation Cap Top Rhombus -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,28L28,40L54,52L80,40Z" />
+    
+    <!-- Cap Under-band / Skullcap -->
+    <path
+        android:fillColor="#E0E7FF"
+        android:pathData="M37,45.5V59C37,67.5 71,67.5 71,59V45.5L54,53.5Z" />
+
+    <!-- Cap Tassel cord & bead -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M54,40L29,48V60L32,60V49.5L54,40Z" />
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M29,60m-3.5,0a3.5,3.5 0,1,1 7,0a3.5,3.5 0,1,1 -7,0" />
+
+    <!-- Glowing AI Diamond / Spark at the apex -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M54,18L57,25L64,28L57,31L54,38L51,31L44,28L51,25Z" />
+        
+    <!-- Smaller playful sparkle -->
+    <path
+        android:fillColor="#F472B6"
+        android:pathData="M75,26L77,30L81,32L77,34L75,38L73,34L69,32L73,30Z" />
+</vector>
