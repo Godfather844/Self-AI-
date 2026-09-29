@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ "main", "master" ]
-  workflow_dispatch: # इससे आप कभी भी मैन्युअली बटन दबाकर भी APK बना सकते हैं
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,16 +18,22 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: gradle
 
-      - name: Make Gradle Executable
-        run: chmod +x ./gradlew
+      # अगर gradlew मिसिंग है, तो सिस्टम का gradle wrapper बना देगा
+      - name: Ensure Gradle Wrapper
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            echo "gradlew not found in root, generating gradle wrapper..."
+            gradle wrapper
+          fi
+          chmod +x ./gradlew
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: SelfAI-Debug-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: "**/build/outputs/apk/debug/*.apk"
