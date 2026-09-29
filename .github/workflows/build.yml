@@ -19,17 +19,51 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # अगर gradlew मिसिंग है, तो सिस्टम का gradle wrapper बना देगा
+      # Fix 1: Dummy google-services.json generate karna taaki Google plugin pass ho sake
+      - name: Create Dummy google-services.json
+        run: |
+          cat << 'EOF' > google-services.json
+          {
+            "project_info": {
+              "project_number": "1234567890",
+              "project_id": "self-ai-app",
+              "storage_bucket": "self-ai-app.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:1234567890:android:abcdef123456",
+                  "android_client_info": {
+                    "package_name": "com.example.selfai"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [{ "current_key": "dummy_api_key_for_build" }],
+                "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+          # Jahan jahan google-services.json khoja ja raha hai wahan copy kar do
+          find . -type d -name "app" -exec cp google-services.json {}/ \;
+          cp google-services.json ./ || true
+
       - name: Ensure Gradle Wrapper
         run: |
           if [ ! -f "./gradlew" ]; then
-            echo "gradlew not found in root, generating gradle wrapper..."
             gradle wrapper
           fi
           chmod +x ./gradlew
 
+      # Fix 2: KSP/IntelliJ headless crash fix (-Djava.awt.headless=true) + Gradle flag
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          ./gradlew assembleDebug \
+            -Djava.awt.headless=true \
+            -Dorg.gradle.jvmargs="-Xmx2048m -Djava.awt.headless=true" \
+            --no-daemon \
+            --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
