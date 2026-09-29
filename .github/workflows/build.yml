@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # एग्जैक्ट पैकेज नेम के साथ google-services.json बनाना
+      # Step 1: Matching google-services.json
       - name: Create Exact Matching google-services.json
         run: |
           cat << 'EOF' > google-services.json
@@ -53,10 +53,27 @@ jobs:
             "configuration_version": "1"
           }
           EOF
-          # app फोल्डर और रूट दोनों जगह कॉपी करें
           find . -type d -name "app" -exec cp google-services.json {}/ \;
           cp google-services.json ./ || true
 
+      # Step 2: Fix KSP Headless Crash via gradle.properties
+      - name: Configure Gradle & KSP flags
+        run: |
+          # gradle.properties me KSP aur JVM headless flags inject karo
+          mkdir -p ~/.gradle
+          echo "org.gradle.jvmargs=-Xmx2560m -Djava.awt.headless=true -Dawt.toolkit=sun.awt.HeadlessToolkit" >> ~/.gradle/gradle.properties
+          echo "ksp.incremental=false" >> ~/.gradle/gradle.properties
+          echo "ksp.run.in.process=true" >> ~/.gradle/gradle.properties
+          echo "kotlin.compiler.execution.strategy=in-process" >> ~/.gradle/gradle.properties
+          
+          # Root aur submodules ke gradle.properties me bhi append karo
+          touch gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2560m -Djava.awt.headless=true -Dawt.toolkit=sun.awt.HeadlessToolkit" >> gradle.properties
+          echo "ksp.incremental=false" >> gradle.properties
+          echo "ksp.run.in.process=true" >> gradle.properties
+          echo "kotlin.compiler.execution.strategy=in-process" >> gradle.properties
+
+      # Step 3: Ensure Gradle Wrapper
       - name: Ensure Gradle Wrapper
         run: |
           if [ ! -f "./gradlew" ]; then
@@ -64,14 +81,18 @@ jobs:
           fi
           chmod +x ./gradlew
 
+      # Step 4: Build Debug APK with headless JVM options
       - name: Build Debug APK
         run: |
+          export JAVA_TOOL_OPTIONS="-Djava.awt.headless=true"
           ./gradlew assembleDebug \
-            -Djava.awt.headless=true \
-            -Dorg.gradle.jvmargs="-Xmx2048m -Djava.awt.headless=true" \
             --no-daemon \
+            --no-parallel \
+            -Djava.awt.headless=true \
+            -Dawt.toolkit=sun.awt.HeadlessToolkit \
             --stacktrace
 
+      # Step 5: Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         if: success()
